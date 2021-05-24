@@ -1,21 +1,27 @@
-name: Release new action version
 on:
+  release:
+    types: [released]
   workflow_dispatch:
     inputs:
-      COMMAND:
-        description: 'Command to run'
+      TAG_NAME:
+        description: 'Tag name that the major tag will point to'
         required: true
 
+env:
+  TAG_NAME: ${{ github.event.inputs.TAG_NAME || github.event.release.tag_name }}
 defaults:
   run:
     shell: pwsh
 
 jobs:
   update_tag:
-    name: Run command
-    environment:
-      name: someEnvironment
+    name: Update the major tag to include the ${{ github.event.inputs.TAG_NAME || github.event.release.tag_name }} changes
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-    - name: Run command
-      run: ${{ github.event.inputs.COMMAND }}
+    - name: Update the ${{ env.TAG_NAME }} tag
+      id: update-major-tag
+      uses: akv-platform/publish-action@main
+      with:
+        source-tag: ${{ env.TAG_NAME }}
